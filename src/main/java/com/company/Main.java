@@ -30,12 +30,12 @@ public class Main {
         Countries[] countries = Countries.values();
         for (Countries country : countries) {
             System.out.println(country.getName());
-            reviews.addAll(getAllReviewsForCountry(k_od, country.getId()));
+            reviews.addAll(getAllReviewsForCountry(k_od, country));
         }
-        reviews.size();
+        ExcelExporter.export(k_od, reviews);
     }
 
-    private static List<Review> getAllReviewsForCountry(long appId, int country) {
+    private static List<Review> getAllReviewsForCountry(long appId, Countries country) {
         List<Review> reviewList = new ArrayList<Review>();
         Request request = buildRequest(appId, country, 1);
         try {
@@ -55,9 +55,9 @@ public class Main {
         return reviewList;
     }
 
-    private static List<Review> getReviewsFromPage(long appId, int countryId, int page) {
+    private static List<Review> getReviewsFromPage(long appId, Countries country, int page) {
         List<Review> reviewList = new ArrayList<Review>();
-        Request request = buildRequest(appId, countryId, page);
+        Request request = buildRequest(appId, country, page);
         try {
             Response response = client.newCall(request).execute();
             InputStream is = response.body().byteStream();
@@ -66,7 +66,7 @@ public class Main {
             Elements reviews = doc.getElementsByClass("content");
             Elements users = doc.getElementsByClass("user-info");
             for (int i = 0; i < reviews.size(); i++) {
-                reviewList.add(getReview(appId, countryId, titles.get(i), reviews.get(i), users.get(i)));
+                reviewList.add(getReview(appId, country, titles.get(i), reviews.get(i), users.get(i)));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -76,7 +76,7 @@ public class Main {
         return reviewList;
     }
 
-    private static Review getReview(long appId, int countryId, Element titleElement, Element review, Element user) throws ParseException {
+    private static Review getReview(long appId, Countries country, Element titleElement, Element review, Element user) throws ParseException {
         String starsString = titleElement.nextElementSibling().attr("aria-label"); //string that contains number of stars e.g. 5 stars
         String title = titleElement.text(); // string contains a title
         String reviewBody = review.text(); // review itself
@@ -86,7 +86,7 @@ public class Main {
         String version = info[info.length - 2].trim().split(" ")[1];
         Date date = null;
         String dateString = info[info.length - 1].trim();
-        switch (countryId) {
+        switch (country.getId()) {
             case UK_ID:
                 date = formatterUK.parse(dateString);
                 break;
@@ -100,15 +100,15 @@ public class Main {
                 date = formatter.parse(dateString);
                 break;
         }
-        return new Review(appId, rate, title, reviewBody, date, version);
+        return new Review(appId, country, rate, title, reviewBody, date, version);
     }
 
-    private static Request buildRequest(long appId, long countryId, int page) {
+    private static Request buildRequest(long appId, Countries country, int page) {
         String url = String.format(APP_STORE_TARGET_URL, appId, page);
         return new Request.Builder()
                 .url(url)
                 .header("User-Agent", "iTunes/10.3.1 (Macintosh; Intel Mac OS X 10.6.8) AppleWebKit/533.21.1")
-                .header("X-Apple-Store-Front", String.format("%s,12", countryId))
+                .header("X-Apple-Store-Front", String.format("%s,12", country.getId()))
                 .header("Accept-Language", "en-us, en;q=0.50")
                 .build();
     }

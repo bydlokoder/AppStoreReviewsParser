@@ -9,9 +9,11 @@ public class Review implements Comparable<Review> {
     private String body;
     private Date date;
     private String version;
+    private Countries country;
 
-    public Review(long appId, double rate, String title, String body, Date date, String version) {
+    public Review(long appId, Countries country, double rate, String title, String body, Date date, String version) {
         this.appId = appId;
+        this.country = country;
         this.rate = rate;
         this.title = title;
         this.body = body;
@@ -42,6 +44,10 @@ public class Review implements Comparable<Review> {
 
     public long getAppId() {
         return appId;
+    }
+
+    public Countries getCountry() {
+        return country;
     }
 
     public int compareTo(Review review) {
