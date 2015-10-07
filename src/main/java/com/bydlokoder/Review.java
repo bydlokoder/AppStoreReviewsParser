@@ -1,4 +1,4 @@
-package com.company;
+package com.bydlokoder;
 
 import java.util.Date;
 

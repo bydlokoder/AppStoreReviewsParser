@@ -1,4 +1,4 @@
-package com.company;
+package com.bydlokoder;
 
 public enum Countries {
     Argentina(143505, "Argentina"),

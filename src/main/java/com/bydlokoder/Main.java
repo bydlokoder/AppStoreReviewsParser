@@ -1,4 +1,4 @@
-package com.company;
+package com.bydlokoder;
 
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -20,19 +20,27 @@ public class Main {
     private static DateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
     private static DateFormat formatterUK = new SimpleDateFormat("dd MMMM yyyy", Locale.UK);
     private static DateFormat formatterUSA = new SimpleDateFormat("MMM dd, yyyy", Locale.US);
-    private static final long k_od = 464256240;
+    private static final long[] apps = {464256240, 571689619};
+
     private static final int UK_ID = 143444;
     private static final int USA_ID = 143441;
     private static final int Venezuela_ID = 143502;
 
     public static void main(String[] args) {
+        List<Report> reportList = new ArrayList<>();
+        for (long app : apps) {
+            reportList.add(getReport(app));
+        }
+        ExcelExporter.export(reportList);
+    }
+
+    private static Report getReport(long appId) {
         TreeSet<Review> reviews = new TreeSet<Review>();
         Countries[] countries = Countries.values();
         for (Countries country : countries) {
-            System.out.println(country.getName());
-            reviews.addAll(getAllReviewsForCountry(k_od, country));
+            reviews.addAll(getAllReviewsForCountry(appId, country));
         }
-        ExcelExporter.export(k_od, reviews);
+        return new Report(appId, reviews);
     }
 
     private static List<Review> getAllReviewsForCountry(long appId, Countries country) {
@@ -84,7 +92,7 @@ public class Main {
         double rate = Double.parseDouble(starsString.substring(0, 1));
         String[] info = userInfo.split("-");
         String version = info[info.length - 2].trim().split(" ")[1];
-        Date date = null;
+        Date date;
         String dateString = info[info.length - 1].trim();
         switch (country.getId()) {
             case UK_ID:

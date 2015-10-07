@@ -1,4 +1,4 @@
-package com.company;
+package com.bydlokoder;
 
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -9,7 +9,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Collection;
+import java.util.List;
 
 public class ExcelExporter {
 
@@ -21,11 +21,26 @@ public class ExcelExporter {
     private static final String COUNTRY_COLUMN = "Country";
     private static final String DATE_FORMAT = "m/d/yy";
 
-    public static void export(long appId, Collection<Review> reviewList) {
+    public static void export(List<Report> reportList) {
         String excelFileName = "reviews.xlsx";//name of excel file
-        String sheetName = Long.toString(appId);//name of sheet
-
         XSSFWorkbook wb = new XSSFWorkbook();
+        for (Report report : reportList) {
+            createSheet(wb, report);
+        }
+        try (FileOutputStream fileOut = new FileOutputStream(excelFileName)) {
+            //write this workbook to an Outputstream.
+            wb.write(fileOut);
+            fileOut.flush();
+            fileOut.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void createSheet(XSSFWorkbook wb, Report report) {
+        String sheetName = Long.toString(report.getAppId());//name of sheet
+
+
         XSSFSheet sheet = wb.createSheet(sheetName);
         CellStyle cellStyle = wb.createCellStyle();
         CreationHelper createHelper = wb.getCreationHelper();
@@ -35,7 +50,7 @@ public class ExcelExporter {
         createFirstRow(sheet);
         int r = 1;
         //iterating r number of rows
-        for (Review review : reviewList) {
+        for (Review review : report.getReviews()) {
             XSSFRow row = sheet.createRow(r);
 
             row.createCell(0).setCellValue(review.getVersion());
@@ -49,14 +64,6 @@ public class ExcelExporter {
 
             row.createCell(5).setCellValue(review.getCountry().getName());
             r++;
-        }
-        try (FileOutputStream fileOut = new FileOutputStream(excelFileName)) {
-            //write this workbook to an Outputstream.
-            wb.write(fileOut);
-            fileOut.flush();
-            fileOut.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
